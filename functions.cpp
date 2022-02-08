@@ -1,9 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <stdio.h>
-#include <array>
-#include <string>
+#include <bits/stdc++.h>
+#include <typeinfo>
 using namespace std;
 
 vector<string> fileCopy(string t1) {
@@ -22,7 +20,7 @@ vector<string> fileCopy(string t1) {
     return g;
 }
 
-void fullyConnected(string f1, string f2, string f3) {
+void fullyConnected(string f1, string f2, string f3, string f4) {
     vector<string> im = fileCopy(f1);
     int lim = im.size();
     string arrim[lim];
@@ -103,16 +101,16 @@ void fullyConnected(string f1, string f2, string f3) {
         }
     }
     
-    ofstream myfile ("sample.txt");
+    ofstream myfile (f4);
     if (myfile.is_open())
     {
         myfile << C3 << endl;
         myfile << R3 << endl;
-        for (int p = 0; p < R1; p++)
+        for (int p = 0; p < C2; p++)
         {
-            for (int q = 0; q < C2; q++)
+            for (int q = 0; q < R1; q++)
             {
-                myfile << output[p][q] << endl;
+                myfile << output[q][p] << endl;
             }
         }
         myfile.close();
@@ -120,14 +118,13 @@ void fullyConnected(string f1, string f2, string f3) {
     else cout << "Unable to open file";
 }
 
-void activation(string g1, string ty) {
+void activation(string ty, string g1, string of) {
     vector<string> im = fileCopy(g1);
     int lim = im.size();
     string arrim[lim];
     for (int i = 0; i < lim; i++) 
     {
         arrim[i] = im[i];
-        cout << arrim[i] << endl;
     }
     int R1 = stoi(arrim[1]);
     int C1 = stoi(arrim[0]);
@@ -141,15 +138,6 @@ void activation(string g1, string ty) {
             count++;
         }
     }
-    for (int p = 0; p < C1; p++)
-    {
-        for (int q = 0; q < R1; q++)
-        {
-            cout << input[q][p] << endl;
-        }
-        
-    }
-    
     float output[R1][C1];
     if (ty == "relu")
     {
@@ -158,19 +146,26 @@ void activation(string g1, string ty) {
         {
             for (int q = 0; q < R1; q++)
             {
-                output[q][p] = max(input[p][q], z);
+                output[q][p] = max(input[q][p], z);
             }
         }
     }
     else if (ty == "tanh")
     {
-        cout << "No" << endl;
+        for (int p = 0; p < C1; p++)
+        {
+            for (int q = 0; q < R1; q++)
+            {
+
+                output[q][p] = (exp(2*input[q][p]) - 1)/(exp(2*input[q][p]) + 1);
+            }
+        }
     }
     else
     {
         cout << "Please input correct activation function name";
     }
-    ofstream myfile ("sample.txt");
+    ofstream myfile (of);
     if (myfile.is_open())
     {
         myfile << C1 << endl;
@@ -184,37 +179,98 @@ void activation(string g1, string ty) {
         }
         myfile.close();
     }
-    else cout << "Unable to open file";
+    else cout << "Error: File not found";
 }
 
-void pooling() {
-
+void pooling(string m1, string m2, string m3, string m4) {
+    cout << "Not implemented yet";
 }
 
-void probability() {
-    
-}
-
-int main() {
-    string funcType, file1, file2, file3, type;
-    cout << "Enter the Function Number: ";
-    cin >> funcType;
-    if (funcType == "0")
+void probability(string typ, string k1, string of) {
+    vector<string> iv = fileCopy(k1);
+    int liv = iv.size();
+    string arriv[liv];
+    for (int i = 0; i < liv; i++) 
     {
-        file1 = "a1a.inputmatrix.txt";
-        file2 = "a1a.weightmatrix.txt";
-        file3 = "a1a.biasmatrix.txt";
-        fullyConnected(file1, file2, file3); 
+        arriv[i] = iv[i];
     }
-    else if (funcType == "1")
+    int L1 = stoi(arriv[0]);
+    float output[L1+1];
+    output[0] = L1;
+    if (typ == "softmax")
     {
-        file1 = "a2a.inputmatrix.txt";
-        type = "relu";
-        activation(file1, type);
+        float sum = 0;
+        for (int i = 1; i < (L1+1); i++)
+        {
+            sum = sum + exp(stof(arriv[i]));
+        }
+        for (int i = 1; i < L1+1; i++)
+        {
+            output[i] = exp(stof(arriv[i]))/sum;
+        }   
+    }
+    else if (typ == "sigmoid")
+    {
+        for (int i = 1; i < L1+1; i++)
+        {
+            output[i] = 1/(1+exp(-stof(arriv[i])));
+        }   
+    }
+    else cout << "Incorrect Function" << endl;
+    ofstream myfile (of);
+    if (myfile.is_open())
+    {
+        for (int i = 0; i < L1+1; i++)
+        {
+            myfile << output[i] << endl;
+            
+        }
+        myfile.close();
+    }
+    else cout << "Error: File not found" << endl;
+}
+
+int main(int argc, char** argv) {
+    string sc[argc];
+    for (int i = 0; i < argc; ++i)
+    {
+        char* c = argv[i];
+        string s(c);
+        sc[i] = s;
+    }
+    if (argc == 5)
+    {
+        if (sc[1] == "activation")
+        {
+            activation(sc[2],sc[3],sc[4]);
+        }
+        else if (sc[1] == "probability")
+        {
+            probability(sc[2],sc[3],sc[4]);
+        }
+        else
+        {
+            cout << "Wrong parameters entered" << endl;
+        }
+    }
+    else if (argc == 6)
+    {
+        if (sc[1] == "fullyconnected")
+        {
+            fullyConnected(sc[2],sc[3],sc[4],sc[5]);
+        }
+        else if (sc[1] == "pooling")
+        {
+            pooling(sc[2],sc[3],sc[4],sc[5]);
+        }
+        else
+        {
+            cout << "Wrong parameters entered" << endl;
+        }
     }
     else
     {
-        cout << "Wrong Input";
+        cout << argc << "   Not enough arguments" << endl;
     }
     return 0;
 }
